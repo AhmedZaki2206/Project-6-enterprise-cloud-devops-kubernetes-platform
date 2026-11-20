@@ -1,0 +1,16 @@
+flowchart LR
+  PR[Pull request]:::automation --> PY[ruff + pytest]:::automation
+  PY --> IMG[Docker build + Trivy]:::automation
+  IMG --> TF[Terraform fmt/init/validate + Checkov]:::aws
+  TF --> K8S[Helm lint/template + manifest validation]:::k8s
+  K8S --> ANS[Ansible syntax]:::linux
+  ANS --> DOC[Documentation checks]:::security
+  DOC --> REVIEW[Human review]:::neutral
+  REVIEW -->|merge to main| PUBLISH[Build and push<br/>GHCR : git SHA]:::automation
+  PUBLISH --> MANUAL[Manual local deployment only]:::k8s
+  classDef aws fill:#fff2e0,stroke:#e87500;
+  classDef automation fill:#f2e8ff,stroke:#7e3fc1;
+  classDef k8s fill:#e7f1ff,stroke:#2864dc;
+  classDef linux fill:#e7f7ec,stroke:#278247;
+  classDef security fill:#eeeeee,stroke:#616161;
+  classDef neutral fill:#ffffff,stroke:#455a64;

@@ -1,0 +1,34 @@
+flowchart LR
+  Dev[Developer]:::neutral --> GH[GitHub Repository]:::automation
+  GH --> CI[GitHub Actions<br/>test · scan · validate]:::automation
+  CI --> GHCR[GHCR<br/>SHA-tagged image]:::automation
+
+  subgraph LOCAL[Environment B — Local laptop / Kind]
+    direction LR
+    Helm[Helm release]:::k8s --> Ingress[Optional Ingress]:::k8s
+    Ingress --> Svc[Service]:::k8s
+    Svc --> Pods[FastAPI Pods ×2]:::k8s
+    Kind[Kind cluster]:::k8s --- Helm
+  end
+  GHCR -. manual pull/load .-> Pods
+
+  subgraph VM[Optional disposable Ubuntu VM]
+    Ansible[Ansible]:::linux --> Tools[Docker · kubectl · Kind · Helm]:::linux
+  end
+
+  subgraph AWS[Environment A — AWS blueprint only]
+    TF[Terraform validation]:::aws --> VPC[VPC 10.30.0.0/16]:::aws
+    VPC --> Public[2 public subnets + IGW]:::aws
+    VPC --> Private[2 private subnets<br/>no default Internet route]:::aws
+  end
+
+  CI --> TF
+  Ansible -. optional lab host .-> Kind
+  Security[Non-root · least privilege · Trivy · Checkov]:::security --- CI
+
+  classDef aws fill:#fff2e0,stroke:#e87500,color:#572c00;
+  classDef automation fill:#f2e8ff,stroke:#7e3fc1,color:#30124f;
+  classDef k8s fill:#e7f1ff,stroke:#2864dc,color:#102d68;
+  classDef linux fill:#e7f7ec,stroke:#278247,color:#123e21;
+  classDef security fill:#eeeeee,stroke:#616161,color:#202020;
+  classDef neutral fill:#ffffff,stroke:#455a64,color:#263238;
