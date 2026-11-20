@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata: {name: incident-04}
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: memory-pressure, namespace: incident-04}
+spec:
+  restartPolicy: Always
+  containers:
+    - name: memory
+      image: python:3.12.8-alpine
+      command: ["python", "-c", "x=[]\nwhile True: x.append('x'*1048576)"]
+      resources: {requests: {memory: 8Mi}, limits: {memory: 24Mi}}

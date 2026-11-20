@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Namespace
+metadata: {name: incident-07}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: settings, namespace: incident-07}
+data: {APP_MODE: "invalid-mode"}
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: config-consumer, namespace: incident-07}
+spec:
+  containers:
+    - name: check
+      image: busybox:1.36.1
+      command: ["sh", "-c", "test \"$APP_MODE\" = production"]
+      envFrom: [{configMapRef: {name: settings}}]

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata: {name: incident-05}
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: failed-readiness, namespace: incident-05, labels: {app: readiness-lab}}
+spec:
+  containers:
+    - name: web
+      image: nginx:1.27.3-alpine
+      readinessProbe: {httpGet: {path: /missing-health, port: 80}, periodSeconds: 3}

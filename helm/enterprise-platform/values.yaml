@@ -1,0 +1,47 @@
+replicaCount: 2
+
+image:
+  repository: infrastructure-operations-api
+  tag: local
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+  nodePort: 30080
+
+ingress:
+  enabled: false
+  className: nginx
+  host: enterprise-platform.local
+
+app:
+  environment: local-kind
+  logLevel: INFO
+  version: "0.1.0-local"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+probes:
+  startup:
+    path: /health/live
+    failureThreshold: 30
+    periodSeconds: 2
+  readiness:
+    path: /health/ready
+    initialDelaySeconds: 2
+    periodSeconds: 5
+  liveness:
+    path: /health/live
+    initialDelaySeconds: 5
+    periodSeconds: 10

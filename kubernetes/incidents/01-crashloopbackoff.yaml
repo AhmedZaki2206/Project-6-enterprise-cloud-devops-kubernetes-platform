@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata: {name: incident-01}
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: crashloop, namespace: incident-01}
+spec:
+  restartPolicy: Always
+  containers:
+    - name: failing
+      image: busybox:1.36.1
+      command: ["sh", "-c", "echo intentional-failure; exit 1"]
+      securityContext: {allowPrivilegeEscalation: false, runAsNonRoot: true, runAsUser: 10001, capabilities: {drop: ["ALL"]}}
