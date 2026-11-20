@@ -4,6 +4,20 @@ An interview-ready personal portfolio project connecting secure application deli
 
 ![Architecture overview showing separate AWS blueprint and local Kind runtime](docs/architecture/architecture.svg)
 
+## Architecture Description
+
+The architecture deliberately separates **design-time cloud infrastructure** from the **runnable local platform**:
+
+1. A developer pushes source code, Terraform, Ansible, Helm, Kubernetes manifests, and documentation to GitHub.
+2. Pull-request CI runs application tests, builds and scans the container image, validates Terraform, renders and validates Helm manifests, checks Ansible syntax, and verifies documentation. It never deploys infrastructure.
+3. After an approved merge to `main`, GitHub Actions publishes the image to GHCR with the immutable Git commit SHA. Publishing does not trigger a Kubernetes or AWS deployment.
+4. For the real hands-on runtime, the operator manually loads a local image—or pulls an authorized GHCR image—into the Kind cluster and installs the Helm release.
+5. Local traffic follows `127.0.0.1:18080 → Kind NodePort 30080 → Kubernetes Service → two FastAPI Pods on port 8080`. Readiness controls Service endpoints, while startup and liveness probes supervise container health.
+6. Ansible optionally prepares a separate disposable Ubuntu VM with Docker, kubectl, Kind, and Helm. It does not configure the user's Windows host or Docker Desktop directly.
+7. Terraform defines an independent AWS VPC blueprint with two availability zones and isolated public/private routing. The AWS VPC is not connected to the local Kind cluster, and CI never runs `terraform apply`.
+
+Editable Mermaid sources and the CI/Kubernetes diagrams are documented in [the architecture overview](docs/architecture/architecture-overview.md).
+
 ## What This Project Demonstrates
 
 | Capability | Actual use in this repository |

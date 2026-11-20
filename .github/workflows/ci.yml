@@ -27,7 +27,7 @@ jobs:
           context: .
           load: true
           tags: enterprise-platform:${{ github.sha }}
-      - uses: aquasecurity/trivy-action@0.36.0
+      - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: enterprise-platform:${{ github.sha }}
           severity: CRITICAL,HIGH
