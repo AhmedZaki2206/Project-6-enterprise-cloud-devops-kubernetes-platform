@@ -1,0 +1,2 @@
+Local endpoint: http://127.0.0.1:18080
+Check: kubectl get all -n {{ .Release.Namespace }}

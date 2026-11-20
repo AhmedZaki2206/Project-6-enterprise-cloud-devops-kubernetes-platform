@@ -1,0 +1,77 @@
+---
+- name: Require Ubuntu
+  ansible.builtin.assert:
+    that: ansible_distribution == "Ubuntu"
+    fail_msg: "This role supports disposable Ubuntu lab VMs only."
+
+- name: Install operating system packages
+  ansible.builtin.apt:
+    name: [ca-certificates, curl, git, gnupg, python3-pip, docker.io]
+    state: present
+    update_cache: true
+
+- name: Create dedicated operator user
+  ansible.builtin.user:
+    name: "{{ operator_user }}"
+    shell: /bin/bash
+    create_home: true
+    groups: docker
+    append: true
+  notify: Restart docker
+
+- name: Create safe tools directory
+  ansible.builtin.file:
+    path: /usr/local/lib/devops-tools
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install kubectl from the official release endpoint
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: "0755"
+
+- name: Install Kind from the official release
+  ansible.builtin.get_url:
+    url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-amd64"
+    dest: /usr/local/bin/kind
+    mode: "0755"
+
+- name: Download Helm archive from the official release
+  ansible.builtin.get_url:
+    url: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
+    dest: "/tmp/helm-{{ helm_version }}.tar.gz"
+    mode: "0644"
+
+- name: Extract Helm archive
+  ansible.builtin.unarchive:
+    src: "/tmp/helm-{{ helm_version }}.tar.gz"
+    dest: /usr/local/lib/devops-tools
+    remote_src: true
+    creates: /usr/local/lib/devops-tools/linux-amd64/helm
+
+- name: Link Helm binary
+  ansible.builtin.file:
+    src: /usr/local/lib/devops-tools/linux-amd64/helm
+    dest: /usr/local/bin/helm
+    state: link
+
+- name: Verify installed tools
+  ansible.builtin.command: "{{ item }}"
+  loop:
+    - docker --version
+    - kubectl version --client
+    - kind version
+    - helm version --short
+  changed_when: false
+
+- name: Collect filesystem health
+  ansible.builtin.command: df -h /
+  register: filesystem_health
+  changed_when: false
+
+- name: Report filesystem health
+  ansible.builtin.debug:
+    var: filesystem_health.stdout_lines

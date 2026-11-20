@@ -1,0 +1,6 @@
+---
+- name: Configure disposable Ubuntu DevOps lab
+  hosts: lab
+  become: true
+  roles:
+    - lab_host

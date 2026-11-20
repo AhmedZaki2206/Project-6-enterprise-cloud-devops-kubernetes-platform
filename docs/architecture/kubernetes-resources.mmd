@@ -1,0 +1,15 @@
+flowchart TB
+  Client[Local client :18080] --> NodePort[NodePort Service :30080]
+  Ingress[Optional nginx Ingress] -. when installed .-> Service[Service :80]
+  NodePort --> Service
+  Service --> PodA[Pod A :8080]
+  Service --> PodB[Pod B :8080]
+  CM[ConfigMap] --> PodA
+  CM --> PodB
+  SA[ServiceAccount<br/>token disabled] --> PodA
+  SA --> PodB
+  Helm[Helm release] --> Deploy[Deployment<br/>RollingUpdate]
+  Deploy --> PodA
+  Deploy --> PodB
+  classDef k8s fill:#e7f1ff,stroke:#2864dc,color:#102d68;
+  class Helm,Deploy,PodA,PodB,Service,NodePort,Ingress,CM,SA k8s;
